@@ -1217,5 +1217,475 @@
     <a href="https://t.me/dr_podolskiy" target="_blank" class="footer-tg">@dr_podolskiy</a>
   </footer>
 
+<!-- ─── ВИДЖЕТ ПОМОЩНИКА ─────────────────────────────────────────────────── -->
+<style>
+  .assistant-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    z-index: 1000;
+    background: #2d6cdf;
+    color: #fff;
+    border: none;
+    border-radius: 28px;
+    padding: 13px 20px 13px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 20px rgba(45,108,223,0.45);
+    transition: transform 0.15s, box-shadow 0.15s;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  .assistant-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(45,108,223,0.5); }
+  .assistant-btn:active { transform: scale(0.97); }
+
+  .assistant-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    z-index: 1001;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .assistant-overlay.open { display: flex; }
+
+  .assistant-panel {
+    background: #f0f4f8;
+    width: 100%;
+    max-width: 480px;
+    height: 88vh;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.25s ease;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  .ap-header {
+    background: #fff;
+    padding: 14px 18px 12px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    border-bottom: 1px solid #e8edf2;
+    flex-shrink: 0;
+  }
+  .ap-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2d6cdf, #1a4fa8);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .ap-info { flex: 1; }
+  .ap-name { font-size: 14px; font-weight: 600; color: #1a1a2e; }
+  .ap-sub  { font-size: 11px; color: #888; margin-top: 1px; }
+  .ap-close {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: #f0f2f5;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    color: #666;
+    flex-shrink: 0;
+  }
+  .ap-close:hover { background: #e4e6ea; }
+
+  .ap-chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .ap-bubble {
+    max-width: 88%;
+    padding: 9px 13px;
+    border-radius: 16px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #1a1a2e;
+    animation: apFade 0.2s ease;
+  }
+  .ap-bubble.bot {
+    background: #fff;
+    border-bottom-left-radius: 4px;
+    align-self: flex-start;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+  }
+  .ap-bubble.user {
+    background: #2d6cdf;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    align-self: flex-end;
+  }
+  .ap-bubble b  { font-weight: 600; }
+  .ap-bubble ul { padding-left: 15px; margin: 5px 0; }
+  .ap-bubble li { margin: 3px 0; }
+  .ap-bubble a  { color: #2d6cdf; text-decoration: none; }
+  .ap-bubble .ap-section { font-weight: 600; color: #2d6cdf; margin: 7px 0 3px; font-size: 12.5px; }
+
+  .ap-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    align-self: flex-start;
+    width: 100%;
+    max-width: 320px;
+    animation: apFade 0.2s ease;
+  }
+  .ap-btn {
+    background: #fff;
+    border: 1.5px solid #dde3ec;
+    border-radius: 11px;
+    padding: 10px 14px;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #1a1a2e;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: inherit;
+  }
+  .ap-btn:hover  { background: #f4f7fb; border-color: #2d6cdf; }
+  .ap-btn:active { transform: scale(0.98); }
+  .ap-btn.primary { background: #2d6cdf; border-color: #2d6cdf; color: #fff; justify-content: center; }
+  .ap-btn.primary:hover { background: #1a5bc4; }
+  .ap-btn.back { background: transparent; border-color: #e0e0e0; color: #888; font-size: 12.5px; }
+  .ap-btn.dl { background: #f0f9f0; border-color: #22c55e; color: #166534; }
+  .ap-btn.dl:hover { background: #dcfce7; }
+
+  /* PDF viewer */
+  .ap-pdf-viewer {
+    width: 100%;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    animation: apFade 0.2s ease;
+    align-self: flex-start;
+  }
+  .ap-pdf-toolbar {
+    background: #1a1a2e;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .ap-pdf-toolbar span {
+    color: #ccc;
+    font-size: 12px;
+    font-weight: 500;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ap-pdf-toolbar a {
+    color: #7cb3ff;
+    font-size: 11px;
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 3px 8px;
+    border: 1px solid #7cb3ff;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .ap-pdf-toolbar a:hover { background: rgba(124,179,255,0.15); }
+  .ap-pdf-viewer iframe {
+    width: 100%;
+    height: 420px;
+    border: none;
+    display: block;
+  }
+
+  .ap-typing {
+    display: flex; gap: 4px;
+    padding: 10px 14px;
+    background: #fff;
+    border-radius: 16px; border-bottom-left-radius: 4px;
+    align-self: flex-start;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    animation: apFade 0.2s ease;
+  }
+  .ap-typing span {
+    width: 6px; height: 6px; border-radius: 50%; background: #aaa;
+    animation: apBounce 1.2s infinite;
+  }
+  .ap-typing span:nth-child(2) { animation-delay: 0.2s; }
+  .ap-typing span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes apBounce {
+    0%,60%,100% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+  }
+  @keyframes apFade {
+    from { opacity: 0; transform: translateY(3px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+<!-- Кнопка -->
+<button class="assistant-btn" onclick="openAssistant()">
+  💬 Помощник
+</button>
+
+<!-- Панель -->
+<div class="assistant-overlay" id="assistantOverlay" onclick="handleOverlayClick(event)">
+  <div class="assistant-panel" id="assistantPanel">
+    <div class="ap-header">
+      <div class="ap-avatar">👨‍⚕️</div>
+      <div class="ap-info">
+        <div class="ap-name">Доктор Подольский М.Ю.</div>
+        <div class="ap-sub">Хирург · Флеболог · К.М.Н.</div>
+      </div>
+      <button class="ap-close" onclick="closeAssistant()">✕</button>
+    </div>
+    <div class="ap-chat" id="apChat"></div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const apChat = document.getElementById('apChat');
+  let started = false;
+
+  function openAssistant() {
+    document.getElementById('assistantOverlay').classList.add('open');
+    if (!started) { started = true; apStart(); }
+  }
+  function closeAssistant() {
+    document.getElementById('assistantOverlay').classList.remove('open');
+  }
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('assistantOverlay')) closeAssistant();
+  }
+  window.openAssistant  = openAssistant;
+  window.closeAssistant = closeAssistant;
+  window.handleOverlayClick = handleOverlayClick;
+
+  function apScroll() {
+    setTimeout(() => { apChat.scrollTop = apChat.scrollHeight; }, 50);
+  }
+  function apBubble(html, type, delay) {
+    return new Promise(r => setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = `ap-bubble ${type}`;
+      el.innerHTML = html;
+      apChat.appendChild(el);
+      apScroll(); r();
+    }, delay || 0));
+  }
+  function apButtons(btns, delay) {
+    return new Promise(r => setTimeout(() => {
+      const wrap = document.createElement('div');
+      wrap.className = 'ap-buttons';
+      btns.forEach(b => {
+        const btn = document.createElement('button');
+        btn.className = `ap-btn ${b.cls || ''}`;
+        btn.innerHTML = b.label;
+        btn.onclick = () => {
+          wrap.remove();
+          apBubble(b.label, 'user').then(() => setTimeout(() => b.action(), 150));
+        };
+        wrap.appendChild(btn);
+      });
+      apChat.appendChild(wrap);
+      apScroll(); r();
+    }, delay || 0));
+  }
+  function apTyping(ms) {
+    return new Promise(r => {
+      const el = document.createElement('div');
+      el.className = 'ap-typing';
+      el.innerHTML = '<span></span><span></span><span></span>';
+      apChat.appendChild(el);
+      apScroll();
+      setTimeout(() => { el.remove(); r(); }, ms || 700);
+    });
+  }
+  function apBack(label, action) {
+    apButtons([{ label: label || '← Назад в меню', cls: 'back', action }], 200);
+  }
+
+  async function apStart() {
+    await apTyping(800);
+    await apBubble('👋 Здравствуйте!<br><br>Я помощник доктора <b>Подольского Михаила Юрьевича</b>.<br><br>Скажите, на каком этапе вы сейчас:');
+    apButtons([
+      { label: '🤔 Планирую операцию',       action: () => apSegment('planning') },
+      { label: '🏥 Готовлюсь к лечению',     action: () => apSegment('preparing') },
+      { label: '✅ Уже прооперировался',      action: () => apSegment('postop') },
+    ], 300);
+  }
+
+  async function apSegment(seg) {
+    await apTyping(500);
+    const texts = {
+      planning:  'Здесь найдёте гайды по подготовке и ответы на частые вопросы.',
+      preparing: 'Скачайте гайд по вашей операции — там всё о подготовке.',
+      postop:    'Выберите что вас интересует:',
+    };
+    const icons = { planning: '🤔', preparing: '🏥', postop: '✅' };
+    await apBubble(`${icons[seg]} ${texts[seg]}`);
+    apMainMenu(seg);
+  }
+
+  function apMainMenu(seg) {
+    const common = [
+      { label: '📋 Гайды',          action: apGuides },
+      { label: '❓ Частые вопросы', action: apFAQ },
+      { label: '📺 Канал доктора',  action: apChannel },
+      { label: '📞 Записаться',     action: apBooking },
+    ];
+    const btns = seg === 'postop'
+      ? [{ label: '🩹 После операции', action: apPostop }, ...common, { label: '🔄 Изменить статус', cls: 'back', action: apStart }]
+      : [...common, { label: '🔄 Изменить статус', cls: 'back', action: apStart }];
+    apButtons(btns, 200);
+  }
+
+  async function apGuides() {
+    await apTyping(400);
+    await apBubble('📋 <b>Гайды для пациентов</b><br>Выберите вашу операцию:');
+    apButtons([
+      { label: '🦵 Варикоз',                  action: () => apGuide('varicose') },
+      { label: '🫁 Желчнокаменная болезнь',   action: () => apGuide('zkb') },
+      { label: '🩹 Паховая грыжа',            action: () => apGuide('inguinal') },
+      { label: '🫶 Пупочная грыжа',           action: () => apGuide('umbilical') },
+      { label: '🔧 Послеоперационная грыжа',  action: () => apGuide('incisional') },
+      { label: '🩺 Обработка раны дома',      action: () => apGuide('wound') },
+      { label: '← Назад', cls: 'back', action: () => apMainMenu('planning') },
+    ], 200);
+  }
+
+  const AP_GUIDES = {
+    varicose:   { t: '🦵 Гайд: Варикоз',                 f: 'guides/varicose.pdf',          d: 'Всё о подготовке к операции и что нужно знать заранее.' },
+    zkb:        { t: '🫁 Гайд: Желчнокаменная болезнь',  f: 'guides/zkb-guide.pdf',         d: 'Подготовка к лапароскопии желчного пузыря.' },
+    inguinal:   { t: '🩹 Гайд: Паховая грыжа',           f: 'guides/inguinal-guide.pdf',    d: 'Подготовка к операции, восстановление и частые вопросы.' },
+    umbilical:  { t: '🫶 Гайд: Пупочная грыжа',          f: 'guides/umbilical-guide.pdf',   d: 'Подготовка к операции, восстановление и частые вопросы.' },
+    incisional: { t: '🔧 Гайд: Послеоперационная грыжа', f: 'guides/incisional-guide.pdf',  d: 'Почему нужна сетка, подготовка и восстановление.' },
+    wound:      { t: '🩺 Гайд: Обработка раны дома',     f: 'guides/wound-care-guide.pdf',  d: 'Бетадин и Космопор — пошаговая инструкция по уходу за швом.' },
+  };
+
+  async function apGuide(key) {
+    const g = AP_GUIDES[key];
+    await apTyping(350);
+    await apBubble(`<b>${g.t}</b><br><br>${g.d}`);
+
+    // PDF viewer
+    setTimeout(() => {
+      const wrap = document.createElement('div');
+      wrap.className = 'ap-pdf-viewer';
+      wrap.innerHTML = `
+        <div class="ap-pdf-toolbar">
+          <span>📄 ${g.t}</span>
+          <a href="${g.f}" download>⬇ Сохранить</a>
+        </div>
+        <iframe src="${g.f}#toolbar=0&navpanes=0&scrollbar=1" loading="lazy"></iframe>
+      `;
+      apChat.appendChild(wrap);
+      apScroll();
+
+      apButtons([
+        { label: '← К гайдам', cls: 'back', action: () => { wrap.remove(); apGuides(); } },
+      ], 150);
+    }, 300);
+  }
+
+  async function apPostop() {
+    await apTyping(400);
+    await apBubble('🩹 <b>После операции</b><br>Выберите тип операции:');
+    apButtons([
+      { label: '🦵 После операции на варикозе',       action: () => apPostopInfo('varicose') },
+      { label: '🩹 После операции на грыже',          action: () => apPostopInfo('hernia') },
+      { label: '🫁 После удаления желчного пузыря',   action: () => apPostopInfo('zkb') },
+      { label: '← Назад', cls: 'back', action: () => apMainMenu('postop') },
+    ], 200);
+  }
+
+  const AP_POSTOP = {
+    varicose: '🦵 <b>После операции на варикозе</b><br><br><div class="ap-section">Первые сутки</div><ul><li>Компрессионный трикотаж не снимать</li><li>Ходить можно через 2–3 часа</li><li>Нога выше уровня сердца когда лежите</li></ul><div class="ap-section">Первая неделя</div><ul><li>Компрессия 24/7, снимать только на душ</li><li>Избегать горячего: баня, ванна, загар</li><li>Прогулки 30–40 мин в день</li></ul><div class="ap-section">1–2 месяца</div><ul><li>Компрессия днём обязательна</li><li>Спорт — через 4 недели</li><li>УЗИ контроль через 1 месяц</li></ul>',
+    hernia:   '🩹 <b>После операции на грыже</b><br><br><div class="ap-section">Первые дни</div><ul><li>Ходить уже через несколько часов</li><li>Не поднимать тяжести (&gt;3–5 кг) 4 недели</li><li>Обезболивающие по необходимости</li></ul><div class="ap-section">1 месяц</div><ul><li>Нагрузка постепенно</li><li>Диета: без грубой клетчатки первые 2–3 дня</li></ul><div class="ap-section">3 месяца</div><ul><li>Полный возврат к активности</li><li>Спорт, бассейн — через 6–8 недель</li></ul>',
+    zkb:      '🫁 <b>После удаления желчного пузыря</b><br><br><div class="ap-section">Первые 2 недели</div><ul><li>Питание дробное: 5–6 раз в день</li><li>Без жирного, жареного, алкоголя</li><li>1,5–2 л воды в сутки</li></ul><div class="ap-section">1 месяц</div><ul><li>Диета №5 (отварное, паровое, тушёное)</li><li>Нагрузки постепенно</li></ul><div class="ap-section">3–6 месяцев</div><ul><li>Постепенно расширяем рацион</li><li>Большинство питаются нормально</li></ul>',
+  };
+
+  async function apPostopInfo(key) {
+    await apTyping(450);
+    await apBubble(AP_POSTOP[key]);
+    apBack('← К типам операций', apPostop);
+  }
+
+  async function apFAQ() {
+    await apTyping(400);
+    await apBubble('❓ <b>Частые вопросы</b><br>Выберите вопрос:');
+    apButtons([
+      { label: '😰 Боюсь наркоза — что делать?',     action: () => apFAQItem('anesthesia') },
+      { label: '💊 Можно обойтись без операции?',     action: () => apFAQItem('no_surgery') },
+      { label: '🏥 Сколько лежать в больнице?',       action: () => apFAQItem('hospital') },
+      { label: '💰 Сколько стоит операция?',          action: () => apFAQItem('price') },
+      { label: '😣 Будет больно?',                    action: () => apFAQItem('pain') },
+      { label: '⏱ Как быстро восстановление?',       action: () => apFAQItem('recovery') },
+      { label: '← Назад', cls: 'back', action: () => apMainMenu('planning') },
+    ], 200);
+  }
+
+  const AP_FAQ = {
+    anesthesia: 'При <b>варикозе</b> — наркоза нет. Местная или спинномозговая анестезия. Вы в сознании, слышите доктора.<br><br>При <b>грыже и желчном</b> — общий наркоз. Но современный наркоз — это не «отключение» из фильмов. Анестезиолог рядом всё время, пробуждение мягкое.<br><br>Расскажите доктору о страхах на консультации — это важная информация.',
+    no_surgery: 'При <b>варикозе</b> — мази снимают симптомы, но не убирают вены. На ранней стадии компрессия + флеботоники. На поздней — только операция.<br><br>При <b>грыже</b> — операция нужна всем рано или поздно. Откладывать опасно: чем дольше ждёте, тем сложнее операция.<br><br>При <b>ЖКБ</b> — камни не растворяются. Лапароскопия — золотой стандарт.',
+    hospital:   '🦵 <b>Варикоз</b> — амбулаторно. Домой в тот же день или на следующий.<br><br>🩹 <b>Грыжа</b> — 1–2 дня. Лапароскопия, 3 маленьких прокола.<br><br>🫁 <b>Желчный</b> — 1–2 дня. Восстановление быстрое.<br><br>Работаем в режиме «хирургии одного дня».',
+    price:      'Цена зависит от объёма операции и метода анестезии — называем точно после консультации.<br><br>🏥 Принимаем <b>ОМС, ДМС</b> и платно.<br><br>Напишите доктору — уточним за несколько минут.',
+    pain:       'Во время операции — <b>нет</b>. Анестезия работает надёжно.<br><br>🦵 <b>Варикоз</b> — дискомфорт 2–3 дня, таблетки не нужны большинству.<br>🩹 <b>Грыжа</b> — тянущая боль 3–5 дней, обычные обезболивающие справляются.<br>🫁 <b>Желчный</b> — боль в плечах от газа 1–2 дня.<br><br>Боль управляемая. Это не то, чего стоит бояться.',
+    recovery:   '🦵 <b>Варикоз:</b><ul><li>Работа — через 2–3 дня</li><li>Спорт — через 4 недели</li></ul>🩹 <b>Грыжа:</b><ul><li>Работа — через 5–7 дней</li><li>Спорт — через 6–8 недель</li></ul>🫁 <b>Желчный:</b><ul><li>Работа — через 5–7 дней</li><li>Полная адаптация — 3–6 месяцев</li></ul>',
+  };
+
+  async function apFAQItem(key) {
+    await apTyping(450);
+    await apBubble(AP_FAQ[key]);
+    if (key === 'price') {
+      apButtons([
+        { label: '💬 Написать доктору', cls: 'primary', action: apBooking },
+        { label: '← К вопросам', cls: 'back', action: apFAQ },
+      ], 200);
+    } else {
+      apBack('← К вопросам', apFAQ);
+    }
+  }
+
+  async function apChannel() {
+    await apTyping(350);
+    await apBubble('📺 <b>Канал доктора Подольского</b><br><br>Реальные случаи из практики, советы и ответы на вопросы пациентов.');
+    apButtons([
+      { label: '📺 Перейти в канал', cls: 'primary', action: () => { window.open('https://t.me/drpodolskiy','_blank'); apMainMenu('planning'); } },
+      { label: '← Назад', cls: 'back', action: () => apMainMenu('planning') },
+    ], 200);
+  }
+
+  async function apBooking() {
+    await apTyping(350);
+    await apBubble('📞 <b>Запись к доктору Подольскому</b><br><br>🏥 РЖД-Медицина им. Семашко<br>📍 ул. Ставропольская, д. 23, корп. 1<br><br>📱 <a href="tel:+79955016728">+7 995 501-67-28</a>');
+    apButtons([
+      { label: '💬 Написать в Telegram', cls: 'primary', action: () => { window.open('https://t.me/dr_podolskiy','_blank'); apMainMenu('planning'); } },
+      { label: '← Назад', cls: 'back', action: () => apMainMenu('planning') },
+    ], 200);
+  }
+})();
+</script>
+
 </body>
 </html>
