@@ -1393,6 +1393,14 @@
     animation: apFade 0.2s ease;
     align-self: flex-start;
   }
+  .ap-section {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #2d6cdf;
+    margin: 12px 0 4px;
+  }
   .ap-pdf-toolbar {
     background: #1a1a2e;
     padding: 8px 12px;
@@ -1561,10 +1569,12 @@
 
   function apMainMenu(seg) {
     const common = [
-      { label: '📋 Гайды',          action: apGuides },
-      { label: '❓ Частые вопросы', action: apFAQ },
-      { label: '📺 Канал доктора',  action: apChannel },
-      { label: '📞 Записаться',     action: apBooking },
+      { label: '📋 Гайды',                         action: apGuides },
+      { label: '📝 Памятка для госпитализации',    action: apPamyatka },
+      { label: '🏥 Как добраться',                 action: apAddress },
+      { label: '❓ Частые вопросы',                action: apFAQ },
+      { label: '📺 Канал доктора',                 action: apChannel },
+      { label: '📞 Записаться',                    action: apBooking },
     ];
     const btns = seg === 'postop'
       ? [{ label: '🩹 После операции', action: apPostop }, ...common, { label: '🔄 Изменить статус', cls: 'back', action: apStart }]
@@ -1641,6 +1651,82 @@
     await apTyping(450);
     await apBubble(AP_POSTOP[key]);
     apBack('← К типам операций', apPostop);
+  }
+
+  async function apPamyatka() {
+    await apTyping(500);
+    await apBubble('📝 <b>Памятка для госпитализации</b><br>Выберите тип операции:');
+    apButtons([
+      { label: '🦵 Варикоз (амбулаторно)',         action: () => apPamyatkaItem('varicose') },
+      { label: '🩹 Грыжа (паховая / пупочная)',    action: () => apPamyatkaItem('hernia') },
+      { label: '🔧 Послеоперационная грыжа',       action: () => apPamyatkaItem('incisional') },
+      { label: '🫁 Желчнокаменная болезнь',        action: () => apPamyatkaItem('zkb') },
+      { label: '← Назад', cls: 'back', action: () => apMainMenu('planning') },
+    ], 300);
+  }
+
+  const AP_PAMYATKA = {
+    varicose: `🦵 <b>Памятка: Варикоз</b><br><i>Амбулаторно — домой в тот же день</i><br><br>
+      <div class="ap-section">📄 Документы</div>
+      <ul><li>Паспорт, полис ОМС, направление</li><li>Анализы и исследования — в распечатанном виде</li></ul>
+      <div class="ap-section">📅 Накануне</div>
+      <ul><li>Принять душ</li><li>Побрить оперируемую конечность и лобковую область</li><li>Лёгкий ужин, алкоголь исключить</li></ul>
+      <div class="ap-section">🎒 Что взять</div>
+      <ul><li>Компрессионный трикотаж 2 класса</li><li>Удобная одежда и обувь</li><li>Постоянные лекарства</li><li>Телефон + зарядка</li></ul>`,
+    hernia: `🩹 <b>Памятка: Грыжа</b><br><i>Стационар 1–2 дня, общая анестезия</i><br><br>
+      <div class="ap-section">📄 Документы</div>
+      <ul><li>Паспорт, полис ОМС, направление</li><li>Анализы — в распечатанном виде</li></ul>
+      <div class="ap-section">📅 Накануне</div>
+      <ul><li>Ужин до 18:00, после — голод</li><li>Принять душ</li><li>Побрить живот от пупка до лобковой области</li></ul>
+      <div class="ap-section">🌅 День госпитализации</div>
+      <ul><li>⛔ <b>Есть и пить категорически нельзя</b></li></ul>
+      <div class="ap-section">🎒 Что взять</div>
+      <ul><li>Компрессионный трикотаж 2 класса</li><li>Послеоперационный бандаж</li><li>Удобная одежда, тапочки, гигиена</li><li>Постоянные лекарства</li><li>Телефон + зарядка, книга/планшет</li></ul>`,
+    incisional: `🔧 <b>Памятка: Послеоперационная грыжа</b><br><i>Стационар 2–4 дня, общая анестезия</i><br><br>
+      <div class="ap-section">📄 Документы</div>
+      <ul><li>Паспорт, полис ОМС, направление</li><li>Анализы, предыдущие выписки — в распечатанном виде</li></ul>
+      <div class="ap-section">📅 Накануне</div>
+      <ul><li>Ужин до 18:00, после — голод</li><li>Принять душ</li><li>Побрить живот от уровня сосков до лобковой области</li></ul>
+      <div class="ap-section">🌅 День госпитализации</div>
+      <ul><li>⛔ <b>Есть и пить категорически нельзя</b></li></ul>
+      <div class="ap-section">🎒 Что взять</div>
+      <ul><li>Компрессионный трикотаж 2 класса</li><li>Бандаж абдоминальный</li><li>Удобная одежда, тапочки, гигиена</li><li>Постоянные лекарства</li><li>Телефон + зарядка, книга/планшет</li></ul>`,
+    zkb: `🫁 <b>Памятка: Желчнокаменная болезнь</b><br><i>Стационар 1–2 дня, общая анестезия</i><br><br>
+      <div class="ap-section">📄 Документы</div>
+      <ul><li>Паспорт, полис ОМС, направление</li><li>УЗИ брюшной полости + анализы — в распечатанном виде</li></ul>
+      <div class="ap-section">📅 За 3 дня</div>
+      <ul><li>Диета: без жирного, жареного, алкоголя</li><li>Не принимать желчегонные препараты</li></ul>
+      <div class="ap-section">📅 Накануне</div>
+      <ul><li>Ужин до 18:00, после — голод</li><li>Принять душ</li><li>Побрить живот от уровня сосков до лобковой области</li></ul>
+      <div class="ap-section">🌅 День госпитализации</div>
+      <ul><li>⛔ <b>Есть и пить категорически нельзя</b></li></ul>
+      <div class="ap-section">🎒 Что взять</div>
+      <ul><li>Компрессионный трикотаж 2 класса</li><li>Удобная одежда, тапочки, гигиена</li><li>Постоянные лекарства</li><li>Телефон + зарядка, книга/планшет</li></ul>`,
+  };
+
+  async function apPamyatkaItem(key) {
+    await apTyping(500);
+    await apBubble(AP_PAMYATKA[key]);
+    apBack('← К памяткам', apPamyatka);
+  }
+
+  async function apAddress() {
+    await apTyping(400);
+    await apBubble(`🏥 <b>Как добраться</b><br><br>
+      <b>КБ РЖД-Медицина им. Семашко</b><br>
+      📍 Ставропольская ул., 23, корп. 1, стр. 1<br>
+      🕢 Приёмное отделение — в 7:30<br><br>
+      <div class="ap-section">🚶 Маршрут по территории</div>
+      <ul>
+        <li>Войдите через <b>КПП</b> — шлагбаум на въезде</li>
+        <li>Охране скажите: <i>«Ко мне на консультацию к доктору Подольскому»</i></li>
+        <li>Идите прямо по центральной дорожке</li>
+        <li>Хирургический корпус — <b>2 этаж, хирургическое отделение</b></li>
+      </ul>`);
+    apButtons([
+      { label: '🗺 Открыть на Яндекс.Картах', cls: 'download', action: () => window.open('https://yandex.ru/maps/?text=Ставропольская+улица+23+корп+1+Москва', '_blank') },
+      { label: '← Назад', cls: 'back', action: () => apMainMenu('planning') },
+    ], 200);
   }
 
   async function apFAQ() {
