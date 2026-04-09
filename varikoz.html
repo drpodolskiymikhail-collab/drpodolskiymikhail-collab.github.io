@@ -39,6 +39,10 @@
     .method-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;}
     .method-card{border:1px solid var(--border);border-radius:16px;padding:28px;background:var(--bg-soft);transition:box-shadow .2s;}
     .method-card:hover{box-shadow:0 4px 20px rgba(26,47,90,.1);}
+    .method-link{text-decoration:none;color:inherit;display:block;transition:box-shadow .2s,border-color .2s;}
+    .method-link:hover{border-color:var(--blue);}
+    .method-more{margin-top:14px;font-size:13px;font-weight:600;color:var(--blue);opacity:.7;}
+    .method-link:hover .method-more{opacity:1;}
     .method-num{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--blue);opacity:.5;text-transform:uppercase;margin-bottom:12px;}
     .method-card h3{font-size:17px;font-weight:600;color:var(--blue);margin-bottom:10px;}
     .method-card p{font-size:14px;color:var(--muted);line-height:1.65;}
@@ -101,7 +105,7 @@
   <h2 class="section-title">Три метода — каждый для своей задачи</h2>
   <div class="method-grid">
 
-    <div class="method-card">
+    <a href="evlk-rcha.html" class="method-card method-link">
       <div class="method-num">01 / Основной метод</div>
       <h3>ЭВЛК / РЧА</h3>
       <p>Эндовенозная лазерная коагуляция (ЭВЛК) и радиочастотная абляция (РЧА) — два метода одного принципа: световод или зонд вводится через прокол под УЗИ-контролем, стенки вены закрываются изнутри. Разрезов нет. Подбираю метод индивидуально под анатомию вены.</p>
@@ -111,9 +115,10 @@
         <span class="badge">30 минут</span>
         <span class="badge">Местная анестезия</span>
       </div>
-    </div>
+      <div class="method-more">Подробнее →</div>
+    </a>
 
-    <div class="method-card">
+    <a href="skleroterapiya.html" class="method-card method-link">
       <div class="method-num">02 / Для звёздочек</div>
       <h3>Склеротерапия</h3>
       <p>Тонкая игла, препарат — и сосудистая звёздочка постепенно исчезает за несколько недель. Провожу под УЗИ-контролем. Без наркоза. После процедуры — домой своим ходом.</p>
@@ -122,9 +127,10 @@
         <span class="badge">УЗИ-контроль</span>
         <span class="badge">2–4 сеанса</span>
       </div>
-    </div>
+      <div class="method-more">Подробнее →</div>
+    </a>
 
-    <div class="method-card">
+    <a href="miniflebektomiya.html" class="method-card method-link">
       <div class="method-num">03 / При узлах</div>
       <h3>Минифлебэктомия</h3>
       <p>Удаление поверхностных варикозных узлов через проколы 2–3 мм. Специальный крючок, никаких разрезов. Сочетается с ЭВЛК/РЧА для полного результата.</p>
@@ -133,7 +139,8 @@
         <span class="badge">Без шрамов</span>
         <span class="badge">Местная анестезия</span>
       </div>
-    </div>
+      <div class="method-more">Подробнее →</div>
+    </a>
 
   </div>
 </section>
