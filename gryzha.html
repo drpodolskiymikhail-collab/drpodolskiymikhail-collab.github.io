@@ -34,6 +34,8 @@
     .section-title{font-family:'Playfair Display',serif;font-size:clamp(24px,4vw,36px);color:var(--blue);margin-bottom:48px;line-height:1.25;}
     .type-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;}
     .type-card{border:1px solid var(--border);border-radius:16px;padding:28px;background:var(--bg-soft);}
+    .type-card-link{text-decoration:none;color:inherit;display:block;transition:box-shadow .2s,border-color .2s;}
+    .type-card-link:hover{box-shadow:0 4px 20px rgba(26,47,90,.1);border-color:#1A2F5A;}
     .type-icon{font-size:28px;margin-bottom:14px;}
     .type-card h3{font-size:17px;font-weight:600;color:var(--blue);margin-bottom:10px;}
     .type-card p{font-size:14px;color:var(--muted);line-height:1.65;}
@@ -98,7 +100,7 @@
   <h2 class="section-title">Какие грыжи я оперирую</h2>
   <div class="type-grid">
 
-    <div class="type-card">
+    <a href="pakhovaya-gryzha.html" class="type-card type-card-link">
       <div class="type-icon">🩹</div>
       <h3>Паховая грыжа</h3>
       <p>Самая частая у мужчин. Оперирую лапароскопически методом ТЕП или ТАРР — сетка закрывает дефект изнутри. 3 прокола, 40–50 минут, спинномозговая анестезия.</p>
@@ -107,9 +109,10 @@
         <span class="badge">3 прокола</span>
         <span class="badge">1 день в стационаре</span>
       </div>
-    </div>
+      <div style="margin-top:14px;font-size:13px;font-weight:600;color:#1A2F5A;">Подробнее →</div>
+    </a>
 
-    <div class="type-card">
+    <a href="pupochnaya-gryzha.html" class="type-card type-card-link">
       <div class="type-icon">🫶</div>
       <h3>Пупочная грыжа</h3>
       <p>Даже небольшую пупочную грыжу не стоит откладывать — риск ущемления реален. Метод IPOM или мини-доступ, сетчатый имплант. Шрама практически нет.</p>
@@ -118,9 +121,10 @@
         <span class="badge">Без большого шрама</span>
         <span class="badge">1–2 дня</span>
       </div>
-    </div>
+      <div style="margin-top:14px;font-size:13px;font-weight:600;color:#1A2F5A;">Подробнее →</div>
+    </a>
 
-    <div class="type-card">
+    <a href="ventralnaya-gryzha.html" class="type-card type-card-link">
       <div class="type-icon">🔧</div>
       <h3>Послеоперационная (вентральная)</h3>
       <p>Грыжа после старых операций — разной величины, иногда гигантская. Работаю с любым размером дефекта. Сетка подбирается индивидуально под ситуацию.</p>
@@ -129,7 +133,8 @@
         <span class="badge">Сетчатый имплант</span>
         <span class="badge">Лапароскопия</span>
       </div>
-    </div>
+      <div style="margin-top:14px;font-size:13px;font-weight:600;color:#1A2F5A;">Подробнее →</div>
+    </a>
 
   </div>
 </section>
