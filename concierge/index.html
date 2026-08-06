@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Медицинский Консьерж</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f6fa;
+    --card: #ffffff;
+    --primary: #1a56db;
+    --primary-light: #e8f0fe;
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --rzd: #d40000;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* Header */
+  .header {
+    background: var(--rzd);
+    color: white;
+    padding: 16px 20px 20px;
+  }
+  .header-logo {
+    font-size: 11px;
+    opacity: 0.85;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .header-title {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .header-sub {
+    font-size: 13px;
+    opacity: 0.85;
+    margin-top: 4px;
+  }
+
+  /* Patient card */
+  .patient-card {
+    background: white;
+    margin: 16px;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .patient-avatar {
+    width: 52px; height: 52px;
+    background: var(--primary-light);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .patient-name { font-weight: 700; font-size: 16px; }
+  .patient-op {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .patient-doctor {
+    font-size: 12px;
+    color: var(--primary);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  /* Section title */
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 16px;
+    margin: 20px 0 10px;
+  }
+
+  /* Recovery timeline */
+  .timeline {
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .tl-item {
+    display: flex;
+    gap: 14px;
+    cursor: pointer;
+  }
+  .tl-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40px;
+    flex-shrink: 0;
+  }
+  .tl-dot {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .tl-dot.done { background: var(--green); color: white; }
+  .tl-dot.active { background: var(--primary); color: white; box-shadow: 0 0 0 4px var(--primary-light); }
+  .tl-dot.future { background: #e2e8f0; color: var(--text-muted); }
+  .tl-line {
+    width: 2px;
+    flex: 1;
+    min-height: 16px;
+    background: #e2e8f0;
+    margin: 4px 0;
+  }
+  .tl-line.done { background: var(--green); }
+  .tl-content {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    flex: 1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: transform 0.15s;
+  }
+  .tl-content:active { transform: scale(0.98); }
+  .tl-content.active-card { border: 2px solid var(--primary); }
+  .tl-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+  }
+  .tl-heading { font-weight: 700; font-size: 15px; }
+  .tl-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+  .tl-badge {
+    display: inline-block;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 20px;
+    padding: 2px 8px;
+    margin-top: 6px;
+  }
+  .tl-badge.done { background: var(--green-light); color: var(--green); }
+
+  /* FAQ cards */
+  .faq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 16px;
+  }
+  .faq-card {
+    background: white;
+    border-radius: 14px;
+    padding: 16px 14px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: transform 0.15s;
+    text-align: left;
+  }
+  .faq-card:active { transform: scale(0.96); }
+  .faq-icon { font-size: 26px; margin-bottom: 8px; display: block; }
+  .faq-title { font-weight: 600; font-size: 14px; color: var(--text); }
+  .faq-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Alert card */
+  .alert-card {
+    margin: 0 16px;
+    background: var(--red-light);
+    border: 1px solid #fecaca;
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .alert-card:active { transform: scale(0.98); }
+  .alert-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .alert-icon { font-size: 28px; }
+  .alert-title { font-weight: 700; font-size: 16px; color: var(--red); }
+  .alert-list { list-style: none; }
+  .alert-list li {
+    font-size: 13px;
+    color: #991b1b;
+    padding: 3px 0;
+    display: flex;
+    gap: 6px;
+  }
+  .alert-list li::before { content: "🔴"; font-size: 11px; }
+
+  /* Doctor card */
+  .doctor-card {
+    margin: 0 16px;
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .doctor-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .doctor-photo {
+    width: 56px; height: 56px;
+    background: var(--rzd);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    color: white;
+  }
+  .doctor-name { font-weight: 700; font-size: 15px; }
+  .doctor-creds { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .doctor-btns { display: flex; gap: 8px; }
+  .btn {
+    flex: 1;
+    padding: 11px 12px;
+    border-radius: 12px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-outline { background: var(--primary-light); color: var(--primary); }
+
+  /* Modal overlay */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px 40px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    margin: -12px auto 20px;
+  }
+  .modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .modal-body {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .modal-body p { margin-bottom: 10px; }
+  .modal-body ul { padding-left: 20px; margin-bottom: 10px; }
+  .modal-body li { margin-bottom: 4px; }
+  .modal-body .warn {
+    background: #fffbeb;
+    border-left: 3px solid #f59e0b;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  .modal-body .ok {
+    background: var(--green-light);
+    border-left: 3px solid var(--green);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  .modal-close {
+    width: 100%;
+    margin-top: 20px;
+    padding: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">РЖД-Медицина · Медицинский Консьерж</div>
+  <div class="header-title">Ваш план<br>восстановления</div>
+  <div class="header-sub">После лечения варикозной болезни</div>
+</div>
+
+<!-- Patient card -->
+<div class="patient-card">
+  <div class="patient-avatar">🙋</div>
+  <div>
+    <div class="patient-name" id="patient-name">Добрый день!</div>
+    <div class="patient-op">ЭВЛК / РЧА — лечение варикоза</div>
+    <div class="patient-doctor">👨‍⚕️ Подольский М.Ю., хирург, к.м.н.</div>
+  </div>
+</div>
+
+<!-- Recovery timeline -->
+<div class="section-title">Этапы восстановления</div>
+<div class="timeline">
+
+  <div class="tl-item" onclick="openModal('day1')">
+    <div class="tl-left">
+      <div class="tl-dot done">✓</div>
+      <div class="tl-line done"></div>
+    </div>
+    <div class="tl-content">
+      <div class="tl-label">День 1</div>
+      <div class="tl-heading">Сегодня</div>
+      <div class="tl-desc">Ходьба 30–40 мин. Трикотаж. Домой.</div>
+      <span class="tl-badge done">Выполнено</span>
+    </div>
+  </div>
+
+  <div class="tl-item" onclick="openModal('day23')">
+    <div class="tl-left">
+      <div class="tl-dot active">2–3</div>
+      <div class="tl-line"></div>
+    </div>
+    <div class="tl-content active-card">
+      <div class="tl-label">День 2–3</div>
+      <div class="tl-heading">Возврат к работе</div>
+      <div class="tl-desc">Сидячая работа разрешена. Обычный душ.</div>
+      <span class="tl-badge">Сейчас</span>
+    </div>
+  </div>
+
+  <div class="tl-item" onclick="openModal('week1')">
+    <div class="tl-left">
+      <div class="tl-dot future">7</div>
+      <div class="tl-line"></div>
+    </div>
+    <div class="tl-content">
+      <div class="tl-label">Неделя 1</div>
+      <div class="tl-heading">Физическая активность</div>
+      <div class="tl-desc">Физическая работа и лёгкий спорт.</div>
+    </div>
+  </div>
+
+  <div class="tl-item" onclick="openModal('week2')">
+    <div class="tl-left">
+      <div class="tl-dot future">14</div>
+      <div class="tl-line"></div>
+    </div>
+    <div class="tl-content">
+      <div class="tl-label">2 недели</div>
+      <div class="tl-heading">Плавание и бег</div>
+      <div class="tl-desc">Трикотаж снять на ночь.</div>
+    </div>
+  </div>
+
+  <div class="tl-item" onclick="openModal('month1')">
+    <div class="tl-left">
+      <div class="tl-dot future">30</div>
+    </div>
+    <div class="tl-content">
+      <div class="tl-label">1 месяц</div>
+      <div class="tl-heading">Все нагрузки</div>
+      <div class="tl-desc">Трикотаж отменяется. Полная свобода.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FAQ -->
+<div class="section-title">Частые вопросы</div>
+<div class="faq-grid">
+  <div class="faq-card" onclick="openModal('pain')">
+    <span class="faq-icon">💊</span>
+    <div class="faq-title">Болит</div>
+    <div class="faq-sub">Норма или нет?</div>
+  </div>
+  <div class="faq-card" onclick="openModal('swelling')">
+    <span class="faq-icon">💧</span>
+    <div class="faq-title">Опухло</div>
+    <div class="faq-sub">Что делать?</div>
+  </div>
+  <div class="faq-card" onclick="openModal('knitwear')">
+    <span class="faq-icon">🧦</span>
+    <div class="faq-title">Трикотаж</div>
+    <div class="faq-sub">Как носить?</div>
+  </div>
+  <div class="faq-card" onclick="openModal('sport')">
+    <span class="faq-icon">🏃</span>
+    <div class="faq-title">Спорт</div>
+    <div class="faq-sub">Когда можно?</div>
+  </div>
+  <div class="faq-card" onclick="openModal('bath')">
+    <span class="faq-icon">🛁</span>
+    <div class="faq-title">Баня / ванна</div>
+    <div class="faq-sub">Можно ли?</div>
+  </div>
+  <div class="faq-card" onclick="openModal('recurrence')">
+    <span class="faq-icon">🔄</span>
+    <div class="faq-title">Рецидив</div>
+    <div class="faq-sub">Вернётся ли?</div>
+  </div>
+</div>
+
+<!-- Alert -->
+<div class="section-title">Тревожные симптомы</div>
+<div class="alert-card" onclick="openModal('alert')">
+  <div class="alert-top">
+    <div class="alert-icon">🚨</div>
+    <div class="alert-title">Обратитесь к врачу немедленно</div>
+  </div>
+  <ul class="alert-list">
+    <li>Резкая боль и покраснение по ходу вены</li>
+    <li>Внезапный отёк одной ноги</li>
+    <li>Кровотечение из прокола</li>
+    <li>Температура + боль в ноге</li>
+  </ul>
+</div>
+
+<!-- Doctor -->
+<div class="section-title">Ваш врач</div>
+<div class="doctor-card">
+  <div class="doctor-top">
+    <div class="doctor-photo">👨‍⚕️</div>
+    <div>
+      <div class="doctor-name">Подольский М.Ю.</div>
+      <div class="doctor-creds">Хирург · к.м.н. · стаж 8 лет · рейтинг 5.0</div>
+      <div class="doctor-creds" style="margin-top:2px; color:#d40000">РЖД-Медицина им. Семашко</div>
+    </div>
+  </div>
+  <div class="doctor-btns">
+    <a href="tel:+79955016728" class="btn btn-primary">📞 Позвонить</a>
+    <a href="https://t.me/dr_podolskiy" class="btn btn-outline">💬 Telegram</a>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-body" id="modal-body"></div>
+    <button class="modal-close" onclick="closeModalBtn()">Понятно</button>
+  </div>
+</div>
+
+<script>
+// Telegram WebApp init
+if (window.Telegram && window.Telegram.WebApp) {
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+  tg.ready();
+  if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    const user = tg.initDataUnsafe.user;
+    document.getElementById('patient-name').textContent =
+      (user.first_name || '') + (user.last_name ? ' ' + user.last_name : '');
+  }
+}
+
+const MODALS = {
+  day1: {
+    title: "День 1 — Сегодня",
+    body: `
+      <p><strong>Что важно сделать сегодня:</strong></p>
+      <ul>
+        <li>Ходьба 30–40 минут — <strong>обязательно</strong></li>
+        <li>Компрессионный трикотаж — не снимать</li>
+        <li>Спокойный домашний режим</li>
+        <li>Обильное питьё</li>
+      </ul>
+      <div class="warn">⚠️ Не стоять на месте долго. Движение — это лечение.</div>
+      <div class="ok">✅ Небольшой дискомфорт по ходу вены — это нормально.</div>
+    `
+  },
+  day23: {
+    title: "День 2–3",
+    body: `
+      <p><strong>Что можно:</strong></p>
+      <ul>
+        <li>Вернуться к сидячей работе ✅</li>
+        <li>Обычный душ (комфортная температура) ✅</li>
+        <li>Продолжать ходьбу 30–40 мин/день ✅</li>
+      </ul>
+      <div class="warn">⚠️ Трикотаж носить весь день, снимать только на ночь.</div>
+    `
+  },
+  week1: {
+    title: "Неделя 1",
+    body: `
+      <p><strong>Что открывается через 7 дней:</strong></p>
+      <ul>
+        <li>Физическая работа ✅</li>
+        <li>Лёгкий спорт (велосипед, прогулки) ✅</li>
+      </ul>
+      <div class="warn">⚠️ Запрещено до 2 недель: баня, сауна, горячая ванна, авиаперелёты, тяжёлые нагрузки.</div>
+      <p>Контрольный осмотр у доктора Подольского — через 7 дней после операции.</p>
+    `
+  },
+  week2: {
+    title: "2 недели",
+    body: `
+      <p><strong>Что открывается через 2 недели:</strong></p>
+      <ul>
+        <li>Плавание ✅</li>
+        <li>Лёгкий бег ✅</li>
+        <li>Трикотаж снимать на ночь ✅</li>
+        <li>Авиаперелёты (короткие) ✅</li>
+      </ul>
+      <div class="ok">✅ Через 2 недели жизнь практически в полном объёме!</div>
+    `
+  },
+  month1: {
+    title: "1 месяц — Полная свобода",
+    body: `
+      <p><strong>Через месяц разрешено всё:</strong></p>
+      <ul>
+        <li>Любые виды спорта ✅</li>
+        <li>Баня, сауна ✅</li>
+        <li>Трикотаж отменяется ✅</li>
+        <li>Любые нагрузки ✅</li>
+      </ul>
+      <div class="ok">✅ Закрытая вена продолжает рассасываться ещё 2–4 месяца. Это нормально.</div>
+      <p><strong>Профилактика рецидива:</strong> движение, контроль веса, при длительном стоянии — компрессионный трикотаж.</p>
+    `
+  },
+  pain: {
+    title: "💊 Болит — это нормально?",
+    body: `
+      <p>Небольшая боль и дискомфорт в первые 3–5 дней — <strong>нормальная реакция</strong>.</p>
+      <p>Возможны: тянущие ощущения по ходу вены, болезненность при надавливании, уплотнение.</p>
+      <div class="ok">✅ Вена закрылась и постепенно рассасывается (2–4 месяца).<br>Помогает: ходьба, ибупрофен при необходимости, трикотаж.</div>
+      <div class="warn">🚨 Обратитесь к врачу если: нарастающая боль, покраснение и жар по ходу вены, внезапный отёк одной ноги.</div>
+    `
+  },
+  swelling: {
+    title: "💧 Опухло — что делать?",
+    body: `
+      <p>Небольшой отёк в первые 3–7 дней — <strong>нормально</strong>.</p>
+      <p><strong>Что помогает:</strong></p>
+      <ul>
+        <li>Компрессионный трикотаж — носить весь день</li>
+        <li>Ходьба 30–40 мин/день</li>
+        <li>Когда сидите — держите ногу чуть выше горизонтали</li>
+        <li>Меньше стоять на одном месте</li>
+      </ul>
+      <div class="ok">✅ Отёк должен уменьшаться к концу первой недели.</div>
+      <div class="warn">⚠️ Если нарастает — позвоните доктору.</div>
+    `
+  },
+  knitwear: {
+    title: "🧦 Компрессионный трикотаж",
+    body: `
+      <p><strong>Как носить:</strong></p>
+      <ul>
+        <li>Первые 2 недели — весь день, снимать только на ночь</li>
+        <li>После 2 недель — снимать ночью, носить днём</li>
+        <li>После 1 месяца — отменяется ✅</li>
+      </ul>
+      <p><strong>Совет:</strong> надевайте утром не вставая с постели, пока нога не "налилась".</p>
+      <div class="ok">Класс компрессии уточните у доктора — обычно 2 класс после ЭВЛК.</div>
+    `
+  },
+  sport: {
+    title: "🏃 Спорт — когда?",
+    body: `
+      <ul>
+        <li>Ходьба — <strong>с первого дня</strong> ✅</li>
+        <li>Велосипед (спокойно) — через неделю ✅</li>
+        <li>Плавание, лёгкий бег — через 2 недели ✅</li>
+        <li>Тренажёрный зал — через месяц ✅</li>
+      </ul>
+      <div class="ok">✅ Движение — это лечение! Чем больше ходите — тем лучше результат.</div>
+      <div class="warn">⛔ 2 недели нельзя: баня, сауна, горячая ванна.</div>
+    `
+  },
+  bath: {
+    title: "🛁 Баня и горячая ванна",
+    body: `
+      <div class="warn">⛔ Нельзя 2 недели после операции.<br>Высокая температура расширяет сосуды и повышает риск осложнений.</div>
+      <p><strong>Что можно:</strong></p>
+      <ul>
+        <li>Обычный душ (комфортная температура) — со 2-го дня ✅</li>
+        <li>Плавание в бассейне — через 2 недели ✅</li>
+        <li>Баня в умеренном режиме — через месяц ✅</li>
+      </ul>
+    `
+  },
+  recurrence: {
+    title: "🔄 Может ли варикоз вернуться?",
+    body: `
+      <p>Закрытая вена <strong>не восстановится</strong> — она рассосётся за 2–4 месяца.</p>
+      <p>Но варикоз может развиться в <strong>других венах</strong> — поэтому важна профилактика.</p>
+      <p><strong>Профилактика:</strong></p>
+      <ul>
+        <li>Больше движения, меньше стояния</li>
+        <li>Контроль веса</li>
+        <li>При длительной работе на ногах — компрессионный трикотаж</li>
+        <li>УЗИ контроль через 6–12 месяцев</li>
+      </ul>
+    `
+  },
+  alert: {
+    title: "🚨 Тревожные симптомы",
+    body: `
+      <p><strong>Обратитесь к врачу немедленно:</strong></p>
+      <ul>
+        <li>Резкая боль и покраснение по ходу вены</li>
+        <li>Внезапный сильный отёк одной ноги</li>
+        <li>Кровотечение из места прокола</li>
+        <li>Температура >38°C + боль в ноге</li>
+        <li>Одышка, боль в груди</li>
+      </ul>
+      <div class="warn" style="border-color: var(--red); background: var(--red-light)">
+        <strong>Доктор Подольский М.Ю.</strong><br>
+        📱 +7 995 501-67-28<br>
+        При угрозе жизни — 103
+      </div>
+    `
+  }
+};
+
+function openModal(key) {
+  const m = MODALS[key];
+  if (!m) return;
+  document.getElementById('modal-title').textContent = m.title;
+  document.getElementById('modal-body').innerHTML = m.body;
+  document.getElementById('modal-overlay').classList.add('open');
+  if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+  }
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModalBtn();
+}
+
+function closeModalBtn() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+</script>
+</body>
+</html>
