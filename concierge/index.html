@@ -87,6 +87,108 @@
     font-weight: 500;
   }
 
+  /* Path tracker (курьер-стиль) */
+  .path-tracker {
+    background: white;
+    margin: 0 16px 16px;
+    border-radius: 16px;
+    padding: 16px 14px 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .pt-status {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 2px;
+  }
+  .pt-eta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+  .pt-track {
+    display: flex;
+    align-items: flex-start;
+  }
+  .pt-node {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+  .pt-dot {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 2;
+  }
+  .pt-dot.done { background: var(--green); color: white; }
+  .pt-dot.now {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 0 0 4px var(--primary-light);
+    animation: pulse 1.6s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 4px var(--primary-light); }
+    50% { box-shadow: 0 0 0 8px rgba(26,86,219,0.12); }
+    100% { box-shadow: 0 0 0 4px var(--primary-light); }
+  }
+  .pt-line {
+    position: absolute;
+    top: 13px; left: 50%; right: -50%;
+    height: 3px;
+    background: #e2e8f0;
+    z-index: 1;
+  }
+  .pt-line.done { background: var(--green); }
+  .pt-node:last-child .pt-line { display: none; }
+  .pt-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 6px;
+    line-height: 1.3;
+    padding: 0 2px;
+  }
+  .pt-node.now .pt-label { color: var(--primary); font-weight: 700; }
+  .pt-node.done .pt-label { color: var(--green); }
+
+  /* Stage tabs */
+  .stage-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px 4px;
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 20;
+    padding-top: 6px;
+  }
+  .stage-tab {
+    flex-shrink: 0;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .stage-tab.on {
+    background: var(--rzd);
+    border-color: var(--rzd);
+    color: white;
+  }
+
   /* Section title */
   .section-title {
     font-size: 13px;
@@ -95,8 +197,118 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     padding: 0 16px;
-    margin: 20px 0 10px;
+    margin: 22px 0 10px;
   }
+  .section-title.first { margin-top: 18px; }
+
+  /* Date divider */
+  .date-divider {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: #e9ecf2;
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin: 14px auto 10px;
+  }
+  .date-divider-wrap { display: flex; justify-content: center; padding: 0 16px; }
+
+  /* Chat feed */
+  .chat-feed { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+
+  .msg-row { display: flex; gap: 8px; align-items: flex-end; }
+  .msg-row.user { justify-content: flex-end; }
+  .msg-avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--rzd);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .msg {
+    max-width: 78%;
+    background: white;
+    border-radius: 14px 14px 14px 4px;
+    padding: 10px 13px;
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .msg-row.user .msg {
+    background: var(--primary);
+    color: white;
+    border-radius: 14px 14px 4px 14px;
+  }
+  .msg strong { color: var(--rzd); }
+  .msg-row.user .msg strong { color: white; }
+
+  .msg-card {
+    max-width: 88%;
+    background: white;
+    border-radius: 14px 14px 14px 4px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin-left: 34px;
+  }
+  .msg-card .mc-title { font-weight: 700; font-size: 13px; margin-bottom: 8px; }
+  .msg-card ul { padding-left: 18px; font-size: 13px; line-height: 1.8; }
+  .msg-card .mc-tip {
+    margin-top: 8px;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    line-height: 1.5;
+  }
+  .msg-card .mc-action {
+    display: inline-block;
+    margin-top: 10px;
+    background: var(--rzd);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 10px;
+  }
+  .check-done { color: var(--green); font-weight: 700; }
+
+  /* Chat input mock */
+  .chat-input-mock {
+    margin: 10px 16px 0;
+    display: flex;
+    gap: 8px;
+    background: white;
+    border-radius: 24px;
+    padding: 6px 6px 6px 16px;
+    align-items: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .chat-input-mock input {
+    border: none; outline: none; flex: 1; font-size: 14px; background: transparent;
+  }
+  .chat-input-mock .send-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--rzd);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .escalation-note {
+    margin: 12px 16px 0;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    padding: 10px 14px;
+    background: white;
+    border-radius: 12px;
+  }
+  .escalation-note b { color: var(--text); }
 
   /* Recovery timeline */
   .timeline {
@@ -262,6 +474,17 @@
   .btn-primary { background: var(--primary); color: white; }
   .btn-outline { background: var(--primary-light); color: var(--primary); }
 
+  /* Universal note */
+  .universal-note {
+    margin: 20px 16px 0;
+    background: linear-gradient(135deg,#1e293b,#334155);
+    color: white;
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .universal-note .un-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+  .universal-note p { font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.85); }
+
   /* Modal overlay */
   .modal-overlay {
     display: none;
@@ -340,22 +563,168 @@
 <!-- Header -->
 <div class="header">
   <div class="header-logo">РЖД-Медицина · Медицинский Консьерж</div>
-  <div class="header-title">Ваш план<br>восстановления</div>
-  <div class="header-sub">После лечения варикозной болезни</div>
+  <div class="header-title">Ваш путь<br>лечения</div>
+  <div class="header-sub">Варикозная болезнь — от диагноза до восстановления</div>
 </div>
 
 <!-- Patient card -->
 <div class="patient-card">
   <div class="patient-avatar">🙋</div>
   <div>
-    <div class="patient-name" id="patient-name">Добрый день!</div>
-    <div class="patient-op">ЭВЛК / РЧА — лечение варикоза</div>
+    <div class="patient-name" id="patient-name">Иван Петрович</div>
+    <div class="patient-op">Флебэктомия (ЭВЛК) · Операция 24 июля</div>
     <div class="patient-doctor">👨‍⚕️ Подольский М.Ю., хирург, к.м.н.</div>
   </div>
 </div>
 
-<!-- Recovery timeline -->
-<div class="section-title">Этапы восстановления</div>
+<!-- Path tracker -->
+<div class="path-tracker">
+  <div class="pt-status">🟢 Сейчас: День 2–3 после операции</div>
+  <div class="pt-eta">Сидячая работа разрешена · до полного восстановления ~4 недели</div>
+  <div class="pt-track">
+    <div class="pt-node done">
+      <div class="pt-dot done">✓</div>
+      <div class="pt-line done"></div>
+      <div class="pt-label">Подготовка</div>
+    </div>
+    <div class="pt-node done">
+      <div class="pt-dot done">✓</div>
+      <div class="pt-line done"></div>
+      <div class="pt-label">Госпитали-<br>зация</div>
+    </div>
+    <div class="pt-node done">
+      <div class="pt-dot done">✓</div>
+      <div class="pt-line"></div>
+      <div class="pt-label">Операция</div>
+    </div>
+    <div class="pt-node now">
+      <div class="pt-dot now">●</div>
+      <div class="pt-line"></div>
+      <div class="pt-label">Восстанов-<br>ление</div>
+    </div>
+  </div>
+</div>
+
+<!-- Stage tabs -->
+<div class="stage-tabs">
+  <a href="#stage-prep" class="stage-tab on">1. Подготовка</a>
+  <a href="#stage-hosp" class="stage-tab">2. Госпитализация</a>
+  <a href="#stage-recovery" class="stage-tab">3. Восстановление</a>
+  <a href="#stage-chat" class="stage-tab">4. Вопросы ИИ</a>
+</div>
+
+<!-- ================= STAGE 1: ПОДГОТОВКА ================= -->
+<div class="section-title first" id="stage-prep">Подготовка к операции</div>
+
+<div class="date-divider-wrap"><div class="date-divider">17 июля</div></div>
+<div class="chat-feed">
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Здравствуйте, Иван Петрович! Записал вас на операцию — <strong>флебэктомия (ЭВЛК)</strong>, варикозная болезнь. Дата: <strong>24 июля</strong>. Соберу для вас список обследований и буду подсказывать по каждому шагу.</div>
+  </div>
+
+  <div class="msg-card">
+    <div class="mc-title">📋 Нужно сдать до 22 июля</div>
+    <ul>
+      <li><span class="check-done">✅</span> Общий анализ крови и мочи</li>
+      <li><span class="check-done">✅</span> ЭКГ</li>
+      <li>☐ Биохимия крови</li>
+      <li>☐ Коагулограмма</li>
+      <li>☐ Флюорография</li>
+    </ul>
+    <div class="mc-tip">💡 Перед анализом крови не ешьте 8–10 часов, воду пить можно. Занимает 5 минут, результат — на следующий день.</div>
+  </div>
+
+  <div class="msg-row user">
+    <div class="msg">✅ Сдал анализ крови</div>
+  </div>
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Вы большой молодец! Как будет готов результат — сразу сообщу.</div>
+  </div>
+
+  <div class="msg-row user">
+    <div class="msg">✅ Сделал ЭКГ</div>
+  </div>
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Записал! Осталось: биохимия, коагулограмма, флюорография. Подскажу, как только придут результаты.</div>
+  </div>
+</div>
+
+<div class="date-divider-wrap"><div class="date-divider">22 июля</div></div>
+<div class="chat-feed">
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Все анализы и обследования получены. Проверил — <strong>все показатели в пределах нормы ✅</strong>. Готовимся к госпитализации!</div>
+  </div>
+</div>
+
+<!-- ================= STAGE 2: ГОСПИТАЛИЗАЦИЯ ================= -->
+<div class="section-title" id="stage-hosp">Госпитализация</div>
+<div class="chat-feed">
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Госпитализация: <strong>24 июля, 08:00</strong>. ЧУЗ «КБ «РЖД-Медицина» им. Н.А. Семашко», ул. Ставропольская, домовл. 23, корп. 1, приёмное отделение.</div>
+  </div>
+
+  <div class="msg-card">
+    <div class="mc-title">🎒 Что взять с собой</div>
+    <ul>
+      <li>Паспорт, полис ОМС/ДМС</li>
+      <li>Результаты анализов и обследований</li>
+      <li>Компрессионные чулки 2 класса</li>
+      <li>Сменную обувь, средства гигиены</li>
+      <li>Ничего не есть после полуночи накануне</li>
+    </ul>
+  </div>
+
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Как пройдёт день: <strong>08:00</strong> оформление → <strong>09:00</strong> осмотр анестезиолога → <strong>11:00</strong> операция (~30–40 мин) → 6 часов наблюдения → домой в этот же день.</div>
+  </div>
+
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Если хотите — могу показать короткое видео о том, как проходит эта операция.
+      <div class="mc-action">🎥 Смотреть видео</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= STAGE 3: ВОССТАНОВЛЕНИЕ ================= -->
+<div class="section-title" id="stage-recovery">Операция и восстановление</div>
+
+<div class="date-divider-wrap"><div class="date-divider">24 июля — после операции</div></div>
+<div class="chat-feed">
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Операция прошла хорошо, Иван Петрович! Вот рекомендации на первые дни и памятка по уходу за швами.
+      <div class="mc-action">📄 Открыть памятку</div>
+    </div>
+  </div>
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Компрессионный трикотаж не снимать. Ходьба 30–40 минут сегодня же — <strong>это обязательно</strong>.</div>
+  </div>
+</div>
+
+<div class="date-divider-wrap"><div class="date-divider">25 июля</div></div>
+<div class="chat-feed">
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Как самочувствие сегодня? Обработали рану?</div>
+  </div>
+  <div class="msg-row user">
+    <div class="msg">✅ Да, всё в порядке, боли почти нет</div>
+  </div>
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Отлично! Небольшая тянущая боль по ходу вены — это нормально. Если появится покраснение, отёк одной ноги или температура — сразу напишите, помогу.</div>
+  </div>
+</div>
+
+<div class="section-title">Подробный план по дням</div>
 <div class="timeline">
 
   <div class="tl-item" onclick="openModal('day1')">
@@ -419,6 +788,25 @@
     </div>
   </div>
 
+</div>
+
+<!-- ================= STAGE 4: ВОПРОСЫ К ИИ ================= -->
+<div class="section-title" id="stage-chat">Вопросы к ИИ</div>
+<div class="chat-feed">
+  <div class="msg-row user">
+    <div class="msg">Можно ли в баню через неделю?</div>
+  </div>
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Нет, баню и горячую ванну нельзя минимум 2 недели — это повышает риск осложнений. Через 2 недели можно, но в щадящем режиме.</div>
+  </div>
+</div>
+<div class="chat-input-mock">
+  <input type="text" placeholder="Спросите что угодно про ваше лечение…" readonly>
+  <div class="send-btn">➤</div>
+</div>
+<div class="escalation-note">
+  <b>Как это работает:</b> ИИ отвечает на вопросы по базе знаний именно этого пути лечения — не заменяет консультацию врача. Если вопрос выходит за рамки протокола или похож на тревожный симптом — сразу советует обратиться к врачу или вызвать СМП.
 </div>
 
 <!-- FAQ -->
@@ -488,6 +876,12 @@
   </div>
 </div>
 
+<!-- Universal note -->
+<div class="universal-note">
+  <div class="un-title">🔁 Один алгоритм — любой диагноз</div>
+  <p>Этот же путь работает не только для операций. Например, для пациента с артериальной гипертензией: напоминания о приёме препаратов, подготовка к суточному мониторированию АД, разъяснение результатов, контроль показателей и те же тревожные алерты.</p>
+</div>
+
 <!-- Modal -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
   <div class="modal" id="modal">
@@ -510,6 +904,17 @@ if (window.Telegram && window.Telegram.WebApp) {
       (user.first_name || '') + (user.last_name ? ' ' + user.last_name : '');
   }
 }
+
+// Stage tabs highlight on scroll
+const tabs = document.querySelectorAll('.stage-tab');
+const stages = ['stage-prep','stage-hosp','stage-recovery','stage-chat'].map(id => document.getElementById(id));
+window.addEventListener('scroll', () => {
+  let current = stages[0];
+  for (const s of stages) {
+    if (s.getBoundingClientRect().top - 80 <= 0) current = s;
+  }
+  tabs.forEach(t => t.classList.toggle('on', t.getAttribute('href') === '#' + current.id));
+});
 
 const MODALS = {
   day1: {
