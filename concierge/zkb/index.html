@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Медицинский Консьерж</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f4f6fa;
+    --card: #ffffff;
+    --primary: #1a56db;
+    --primary-light: #e8f0fe;
+    --red: #dc2626;
+    --red-light: #fef2f2;
+    --green: #16a34a;
+    --green-light: #f0fdf4;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --rzd: #1F2A44;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* Header */
+  .header {
+    background: var(--rzd);
+    color: white;
+    padding: 16px 20px 20px;
+  }
+  .header-logo {
+    font-size: 11px;
+    opacity: 0.85;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .header-title {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .header-sub {
+    font-size: 13px;
+    opacity: 0.85;
+    margin-top: 4px;
+  }
+
+  /* Patient card */
+  .patient-card {
+    background: white;
+    margin: 16px;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .patient-avatar {
+    width: 52px; height: 52px;
+    background: var(--primary-light);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .patient-name { font-weight: 700; font-size: 16px; }
+  .patient-op {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .patient-doctor {
+    font-size: 12px;
+    color: var(--primary);
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  /* Path tracker (курьер-стиль) */
+  .path-tracker {
+    background: white;
+    margin: 0 16px 16px;
+    border-radius: 16px;
+    padding: 16px 14px 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .pt-status {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 2px;
+  }
+  .pt-eta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+  .pt-track {
+    display: flex;
+    align-items: flex-start;
+  }
+  .pt-node {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+  .pt-dot {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    z-index: 2;
+  }
+  .pt-dot.done { background: var(--green); color: white; }
+  .pt-dot.now {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 0 0 4px var(--primary-light);
+    animation: pulse 1.6s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 4px var(--primary-light); }
+    50% { box-shadow: 0 0 0 8px rgba(26,86,219,0.12); }
+    100% { box-shadow: 0 0 0 4px var(--primary-light); }
+  }
+  .pt-line {
+    position: absolute;
+    top: 13px; left: 50%; right: -50%;
+    height: 3px;
+    background: #e2e8f0;
+    z-index: 1;
+  }
+  .pt-line.done { background: var(--green); }
+  .pt-node:last-child .pt-line { display: none; }
+  .pt-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 6px;
+    line-height: 1.3;
+    padding: 0 2px;
+  }
+  .pt-node.now .pt-label { color: var(--primary); font-weight: 700; }
+  .pt-node.done .pt-label { color: var(--green); }
+
+  /* Stage tabs */
+  .stage-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 0 16px 4px;
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 20;
+    padding-top: 6px;
+  }
+  .stage-tab {
+    flex-shrink: 0;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .stage-tab.on {
+    background: var(--rzd);
+    border-color: var(--rzd);
+    color: white;
+  }
+
+  /* Section title */
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 16px;
+    margin: 22px 0 10px;
+  }
+  .section-title.first { margin-top: 18px; }
+
+  /* Date divider */
+  .date-divider {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: #e9ecf2;
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin: 14px auto 10px;
+  }
+  .date-divider-wrap { display: flex; justify-content: center; padding: 0 16px; }
+
+  /* Chat feed */
+  .chat-feed { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+
+  .msg-row { display: flex; gap: 8px; align-items: flex-end; }
+  .msg-row.user { justify-content: flex-end; }
+  .msg-avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--rzd);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .msg {
+    max-width: 78%;
+    background: white;
+    border-radius: 14px 14px 14px 4px;
+    padding: 10px 13px;
+    font-size: 14px;
+    line-height: 1.5;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .msg-row.user .msg {
+    background: var(--primary);
+    color: white;
+    border-radius: 14px 14px 4px 14px;
+  }
+  .msg strong { color: var(--rzd); }
+  .msg-row.user .msg strong { color: white; }
+
+  .msg-card {
+    max-width: 88%;
+    background: white;
+    border-radius: 14px 14px 14px 4px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin-left: 34px;
+  }
+  .msg-card .mc-title { font-weight: 700; font-size: 13px; margin-bottom: 8px; }
+  .msg-card ul { padding-left: 18px; font-size: 13px; line-height: 1.8; }
+  .msg-card .mc-tip {
+    margin-top: 8px;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    line-height: 1.5;
+  }
+  .msg-card .mc-action {
+    display: inline-block;
+    margin-top: 10px;
+    background: var(--rzd);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 10px;
+  }
+  .check-done { color: var(--green); font-weight: 700; }
+
+  /* Chat input mock */
+  .chat-input-mock {
+    margin: 10px 16px 0;
+    display: flex;
+    gap: 8px;
+    background: white;
+    border-radius: 24px;
+    padding: 6px 6px 6px 16px;
+    align-items: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .chat-input-mock input {
+    border: none; outline: none; flex: 1; font-size: 14px; background: transparent;
+  }
+  .chat-input-mock .send-btn {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--rzd);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .escalation-note {
+    margin: 12px 16px 0;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    padding: 10px 14px;
+    background: white;
+    border-radius: 12px;
+  }
+  .escalation-note b { color: var(--text); }
+
+  /* Recovery timeline */
+  .timeline {
+    padding: 0 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .tl-item {
+    display: flex;
+    gap: 14px;
+    cursor: pointer;
+  }
+  .tl-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40px;
+    flex-shrink: 0;
+  }
+  .tl-dot {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .tl-dot.done { background: var(--green); color: white; }
+  .tl-dot.active { background: var(--primary); color: white; box-shadow: 0 0 0 4px var(--primary-light); }
+  .tl-dot.future { background: #e2e8f0; color: var(--text-muted); }
+  .tl-line {
+    width: 2px;
+    flex: 1;
+    min-height: 16px;
+    background: #e2e8f0;
+    margin: 4px 0;
+  }
+  .tl-line.done { background: var(--green); }
+  .tl-content {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    flex: 1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: transform 0.15s;
+  }
+  .tl-content:active { transform: scale(0.98); }
+  .tl-content.active-card { border: 2px solid var(--primary); }
+  .tl-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+  }
+  .tl-heading { font-weight: 700; font-size: 15px; }
+  .tl-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; line-height: 1.5; }
+  .tl-badge {
+    display: inline-block;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 20px;
+    padding: 2px 8px;
+    margin-top: 6px;
+  }
+  .tl-badge.done { background: var(--green-light); color: var(--green); }
+
+  /* FAQ cards */
+  .faq-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 16px;
+  }
+  .faq-card {
+    background: white;
+    border-radius: 14px;
+    padding: 16px 14px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: transform 0.15s;
+    text-align: left;
+  }
+  .faq-card:active { transform: scale(0.96); }
+  .faq-icon { font-size: 26px; margin-bottom: 8px; display: block; }
+  .faq-title { font-weight: 600; font-size: 14px; color: var(--text); }
+  .faq-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Alert card */
+  .alert-card {
+    margin: 0 16px;
+    background: var(--red-light);
+    border: 1px solid #fecaca;
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .alert-card:active { transform: scale(0.98); }
+  .alert-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .alert-icon { font-size: 28px; }
+  .alert-title { font-weight: 700; font-size: 16px; color: var(--red); }
+  .alert-list { list-style: none; }
+  .alert-list li {
+    font-size: 13px;
+    color: #991b1b;
+    padding: 3px 0;
+    display: flex;
+    gap: 6px;
+  }
+  .alert-list li::before { content: "🔴"; font-size: 11px; }
+
+  /* Doctor card */
+  .doctor-card {
+    margin: 0 16px;
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .doctor-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .doctor-photo {
+    width: 56px; height: 56px;
+    background: var(--rzd);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+    color: white;
+  }
+  .doctor-name { font-weight: 700; font-size: 15px; }
+  .doctor-creds { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .doctor-btns { display: flex; gap: 8px; }
+  .btn {
+    flex: 1;
+    padding: 11px 12px;
+    border-radius: 12px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-outline { background: var(--primary-light); color: var(--primary); }
+
+  /* Universal note */
+  .universal-note {
+    margin: 20px 16px 0;
+    background: linear-gradient(135deg,#1e293b,#334155);
+    color: white;
+    border-radius: 16px;
+    padding: 16px;
+  }
+  .universal-note .un-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+  .universal-note p { font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.85); }
+
+  /* Modal overlay */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px 40px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    margin: -12px auto 20px;
+  }
+  .modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .modal-body {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .modal-body p { margin-bottom: 10px; }
+  .modal-body ul { padding-left: 20px; margin-bottom: 10px; }
+  .modal-body li { margin-bottom: 4px; }
+  .modal-body .warn {
+    background: #fffbeb;
+    border-left: 3px solid #f59e0b;
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  .modal-body .ok {
+    background: var(--green-light);
+    border-left: 3px solid var(--green);
+    padding: 10px 14px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 14px;
+  }
+  .modal-close {
+    width: 100%;
+    margin-top: 20px;
+    padding: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">РЖД-Медицина · Медицинский Консьерж</div>
+  <div class="header-title">Ваш путь<br>лечения</div>
+  <div class="header-sub">Желчнокаменная болезнь — лапароскопическая холецистэктомия</div>
+</div>
+
+<!-- Patient card -->
+<div class="patient-card">
+  <div class="patient-avatar">🙋</div>
+  <div>
+    <div class="patient-name" id="patient-name">Иван Петрович</div>
+    <div class="patient-op">Холецистэктомия (лапароскопия) · Операция 24 июля</div>
+    <div class="patient-doctor">👨‍⚕️ Подольский М.Ю., хирург, к.м.н.</div>
+  </div>
+</div>
+
+<!-- Path tracker -->
+<div class="path-tracker">
+  <div class="pt-status">🟢 Сейчас: День 2–3 после операции</div>
+  <div class="pt-eta">Питание нормализуется · до полного восстановления ~4 недели</div>
+  <div class="pt-track">
+    <div class="pt-node done">
+      <div class="pt-dot done">✓</div>
+      <div class="pt-line done"></div>
+      <div class="pt-label">Подготовка</div>
+    </div>
+    <div class="pt-node done">
+      <div class="pt-dot done">✓</div>
+      <div class="pt-line done"></div>
+      <div class="pt-label">Госпитали-<br>зация</div>
+    </div>
+    <div class="pt-node done">
+      <div class="pt-dot done">✓</div>
+      <div class="pt-line"></div>
+      <div class="pt-label">Операция</div>
+    </div>
+    <div class="pt-node now">
+      <div class="pt-dot now">●</div>
+      <div class="pt-line"></div>
+      <div class="pt-label">Восстанов-<br>ление</div>
+    </div>
+  </div>
+</div>
+
+<!-- Stage tabs -->
+<div class="stage-tabs">
+  <a href="#stage-prep" class="stage-tab on">1. Подготовка</a>
+  <a href="#stage-hosp" class="stage-tab">2. Госпитализация</a>
+  <a href="#stage-recovery" class="stage-tab">3. Восстановление</a>
+  <a href="#stage-chat" class="stage-tab">4. Вопросы ИИ</a>
+</div>
+
+<!-- ================= STAGE 1: ПОДГОТОВКА ================= -->
+<div class="section-title first" id="stage-prep">Подготовка к операции</div>
+
+<div class="date-divider-wrap"><div class="date-divider">17 июля</div></div>
+<div class="chat-feed">
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Здравствуйте, Иван Петрович! Записал вас на операцию — <strong>лапароскопическая холецистэктомия</strong>, желчнокаменная болезнь. Дата: <strong>24 июля</strong>. Соберу для вас список обследований и буду подсказывать по каждому шагу.</div>
+  </div>
+
+  <div class="msg-card">
+    <div class="mc-title">📋 Нужно сдать до 22 июля</div>
+    <ul>
+      <li><span class="check-done">✅</span> Общий анализ крови и мочи</li>
+      <li><span class="check-done">✅</span> ЭКГ</li>
+      <li>☐ Биохимия крови (АЛТ, АСТ, билирубин)</li>
+      <li>☐ Коагулограмма</li>
+      <li>☐ УЗИ брюшной полости</li>
+      <li>☐ Флюорография</li>
+    </ul>
+    <div class="mc-tip">💡 Перед анализом крови не ешьте 8–10 часов, воду пить можно. УЗИ — тоже натощак.</div>
+  </div>
+
+  <div class="msg-row user">
+    <div class="msg">✅ Сдал анализ крови</div>
+  </div>
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Вы большой молодец! Как будет готов результат — сразу сообщу.</div>
+  </div>
+
+  <div class="msg-row user">
+    <div class="msg">✅ Сделал ЭКГ</div>
+  </div>
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Записал! Осталось: биохимия, коагулограмма, флюорография. Подскажу, как только придут результаты.</div>
+  </div>
+</div>
+
+<div class="date-divider-wrap"><div class="date-divider">22 июля</div></div>
+<div class="chat-feed">
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Все анализы и обследования получены. Проверил — <strong>все показатели в пределах нормы ✅</strong>. Готовимся к госпитализации!</div>
+  </div>
+</div>
+
+<!-- ================= STAGE 2: ГОСПИТАЛИЗАЦИЯ ================= -->
+<div class="section-title" id="stage-hosp">Госпитализация</div>
+<div class="chat-feed">
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Госпитализация: <strong>24 июля, 08:00</strong>. ЧУЗ «КБ «РЖД-Медицина» им. Н.А. Семашко», ул. Ставропольская, домовл. 23, корп. 1, приёмное отделение.</div>
+  </div>
+
+  <div class="msg-card">
+    <div class="mc-title">🎒 Что взять с собой</div>
+    <ul>
+      <li>Паспорт, полис ОМС/ДМС</li>
+      <li>Результаты анализов и обследований</li>
+      <li>Бандаж послеоперационный (можно купить в аптеке)</li>
+      <li>Сменную обувь, средства гигиены</li>
+      <li>Ничего не есть и не пить после полуночи накануне</li>
+    </ul>
+  </div>
+
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Как пройдёт день: <strong>08:00</strong> оформление → <strong>09:00</strong> осмотр анестезиолога → <strong>11:00</strong> операция (~40–60 мин) → 1–2 дня наблюдения в стационаре → выписка.</div>
+  </div>
+
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Если хотите — могу показать короткое видео о том, как проходит эта операция.
+      <div class="mc-action">🎥 Смотреть видео</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= STAGE 3: ВОССТАНОВЛЕНИЕ ================= -->
+<div class="section-title" id="stage-recovery">Операция и восстановление</div>
+
+<div class="date-divider-wrap"><div class="date-divider">24 июля — после операции</div></div>
+<div class="chat-feed">
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Операция прошла хорошо, Иван Петрович! Вот рекомендации на первые дни и памятка по питанию и уходу за швами.
+      <div class="mc-action">📄 Открыть памятку</div>
+    </div>
+  </div>
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Сегодня — только вода и несладкий чай. Ходьба 20–30 минут — <strong>обязательно</strong>. Это помогает кишечнику заработать.</div>
+  </div>
+</div>
+
+<div class="date-divider-wrap"><div class="date-divider">25 июля</div></div>
+<div class="chat-feed">
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Как самочувствие? Швы не беспокоят? Сегодня можно начать лёгкое питание — диета №5.</div>
+  </div>
+  <div class="msg-row user">
+    <div class="msg">✅ Да, всё в порядке, немного тянет под рёбрами</div>
+  </div>
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Это нормально — небольшой дискомфорт под правым ребром в первые дни. Если появится желтуха, тёмная моча или температура >38° — сразу напишите, помогу.</div>
+  </div>
+</div>
+
+<div class="section-title">Подробный план по дням</div>
+<div class="timeline">
+
+  <div class="tl-item" onclick="openModal('day1')">
+    <div class="tl-left">
+      <div class="tl-dot done">✓</div>
+      <div class="tl-line done"></div>
+    </div>
+    <div class="tl-content">
+      <div class="tl-label">День 1</div>
+      <div class="tl-heading">После операции</div>
+      <div class="tl-desc">Вода, чай. Ходьба 20–30 мин. Стационар.</div>
+      <span class="tl-badge done">Выполнено</span>
+    </div>
+  </div>
+
+  <div class="tl-item" onclick="openModal('day23')">
+    <div class="tl-left">
+      <div class="tl-dot active">2–3</div>
+      <div class="tl-line"></div>
+    </div>
+    <div class="tl-content active-card">
+      <div class="tl-label">День 2–3</div>
+      <div class="tl-heading">Выписка домой</div>
+      <div class="tl-desc">Диета №5. Душ. Лёгкая активность.</div>
+      <span class="tl-badge">Сейчас</span>
+    </div>
+  </div>
+
+  <div class="tl-item" onclick="openModal('week1')">
+    <div class="tl-left">
+      <div class="tl-dot future">7</div>
+      <div class="tl-line"></div>
+    </div>
+    <div class="tl-content">
+      <div class="tl-label">Неделя 1–2</div>
+      <div class="tl-heading">Расширение питания</div>
+      <div class="tl-desc">Сидячая работа, прогулки, снятие швов.</div>
+    </div>
+  </div>
+
+  <div class="tl-item" onclick="openModal('week2')">
+    <div class="tl-left">
+      <div class="tl-dot future">14</div>
+      <div class="tl-line"></div>
+    </div>
+    <div class="tl-content">
+      <div class="tl-label">2–4 недели</div>
+      <div class="tl-heading">Активная жизнь</div>
+      <div class="tl-desc">Лёгкий спорт, бассейн, почти любая еда.</div>
+    </div>
+  </div>
+
+  <div class="tl-item" onclick="openModal('month1')">
+    <div class="tl-left">
+      <div class="tl-dot future">30</div>
+    </div>
+    <div class="tl-content">
+      <div class="tl-label">1–3 месяца</div>
+      <div class="tl-heading">Полная свобода</div>
+      <div class="tl-desc">Все нагрузки. Питание без ограничений.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= STAGE 4: ВОПРОСЫ К ИИ ================= -->
+<div class="section-title" id="stage-chat">Вопросы к ИИ</div>
+<div class="chat-feed">
+  <div class="msg-row user">
+    <div class="msg">Можно ли в баню через неделю?</div>
+  </div>
+  <div class="msg-row">
+    <div class="msg-avatar">🤖</div>
+    <div class="msg">Нет, баню и горячую ванну нельзя минимум 2 недели — это повышает риск осложнений. Через 2 недели можно, но в щадящем режиме.</div>
+  </div>
+</div>
+<div class="chat-input-mock">
+  <input type="text" placeholder="Спросите что угодно про ваше лечение…" readonly>
+  <div class="send-btn">➤</div>
+</div>
+<div class="escalation-note">
+  <b>Как это работает:</b> ИИ отвечает на вопросы по базе знаний именно этого пути лечения — не заменяет консультацию врача. Если вопрос выходит за рамки протокола или похож на тревожный симптом — сразу советует обратиться к врачу или вызвать СМП.
+</div>
+
+<!-- FAQ -->
+<div class="section-title">Частые вопросы</div>
+<div class="faq-grid">
+  <div class="faq-card" onclick="openModal('pain')">
+    <span class="faq-icon">💊</span>
+    <div class="faq-title">Болит</div>
+    <div class="faq-sub">Норма или нет?</div>
+  </div>
+  <div class="faq-card" onclick="openModal('nausea')">
+    <span class="faq-icon">🤢</span>
+    <div class="faq-title">Тошнота</div>
+    <div class="faq-sub">Что делать?</div>
+  </div>
+  <div class="faq-card" onclick="openModal('diet')">
+    <span class="faq-icon">🥗</span>
+    <div class="faq-title">Диета</div>
+    <div class="faq-sub">Что можно есть?</div>
+  </div>
+  <div class="faq-card" onclick="openModal('sport')">
+    <span class="faq-icon">🏃</span>
+    <div class="faq-title">Спорт</div>
+    <div class="faq-sub">Когда можно?</div>
+  </div>
+  <div class="faq-card" onclick="openModal('bath')">
+    <span class="faq-icon">🛁</span>
+    <div class="faq-title">Баня / ванна</div>
+    <div class="faq-sub">Можно ли?</div>
+  </div>
+  <div class="faq-card" onclick="openModal('recurrence')">
+    <span class="faq-icon">🔄</span>
+    <div class="faq-title">Камни снова?</div>
+    <div class="faq-sub">Могут вернуться?</div>
+  </div>
+</div>
+
+<!-- Alert -->
+<div class="section-title">Тревожные симптомы</div>
+<div class="alert-card" onclick="openModal('alert')">
+  <div class="alert-top">
+    <div class="alert-icon">🚨</div>
+    <div class="alert-title">Обратитесь к врачу немедленно</div>
+  </div>
+  <ul class="alert-list">
+    <li>Пожелтение кожи или белков глаз (желтуха)</li>
+    <li>Тёмная моча, светлый стул</li>
+    <li>Температура >38°C + боль в животе</li>
+    <li>Нарастающая боль в правом подреберье</li>
+    <li>Рвота, не прекращающаяся более 6 часов</li>
+  </ul>
+</div>
+
+<!-- Doctor -->
+<div class="section-title">Ваш врач</div>
+<div class="doctor-card">
+  <div class="doctor-top">
+    <div class="doctor-photo">👨‍⚕️</div>
+    <div>
+      <div class="doctor-name">Подольский М.Ю.</div>
+      <div class="doctor-creds">Хирург · к.м.н. · стаж 8 лет · рейтинг 5.0</div>
+      <div class="doctor-creds" style="margin-top:2px; color:#d40000">РЖД-Медицина им. Семашко</div>
+    </div>
+  </div>
+  <div class="doctor-btns">
+    <a href="tel:+79955016728" class="btn btn-primary">📞 Позвонить</a>
+    <a href="https://t.me/dr_podolskiy" class="btn btn-outline">💬 Telegram</a>
+  </div>
+</div>
+
+<!-- Universal note -->
+<div class="universal-note">
+  <div class="un-title">🔁 Один алгоритм — любой диагноз</div>
+  <p>Этот же путь работает не только для операций. Например, для пациента с артериальной гипертензией: напоминания о приёме препаратов, подготовка к суточному мониторированию АД, разъяснение результатов, контроль показателей и те же тревожные алерты.</p>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title"></div>
+    <div class="modal-body" id="modal-body"></div>
+    <button class="modal-close" onclick="closeModalBtn()">Понятно</button>
+  </div>
+</div>
+
+<script>
+// Telegram WebApp init
+if (window.Telegram && window.Telegram.WebApp) {
+  const tg = window.Telegram.WebApp;
+  tg.expand();
+  tg.ready();
+  if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    const user = tg.initDataUnsafe.user;
+    document.getElementById('patient-name').textContent =
+      (user.first_name || '') + (user.last_name ? ' ' + user.last_name : '');
+  }
+}
+
+// Stage tabs highlight on scroll
+const tabs = document.querySelectorAll('.stage-tab');
+const stages = ['stage-prep','stage-hosp','stage-recovery','stage-chat'].map(id => document.getElementById(id));
+window.addEventListener('scroll', () => {
+  let current = stages[0];
+  for (const s of stages) {
+    if (s.getBoundingClientRect().top - 80 <= 0) current = s;
+  }
+  tabs.forEach(t => t.classList.toggle('on', t.getAttribute('href') === '#' + current.id));
+});
+
+const MODALS = {
+  day1: {
+    title: "День 1 — После операции",
+    body: `
+      <p><strong>Что важно сделать сегодня:</strong></p>
+      <ul>
+        <li>Только вода и несладкий чай</li>
+        <li>Ходьба 20–30 минут — <strong>обязательно</strong></li>
+        <li>Обработка швов по назначению</li>
+        <li>Наблюдение в стационаре</li>
+      </ul>
+      <div class="warn">⚠️ Не есть в первые 4–6 часов после наркоза.</div>
+      <div class="ok">✅ Дискомфорт под правым ребром — это нормально. Ходьба помогает кишечнику.</div>
+    `
+  },
+  day23: {
+    title: "День 2–3 — Выписка",
+    body: `
+      <p><strong>Что можно после выписки:</strong></p>
+      <ul>
+        <li>Диета №5 — варёное, тушёное, без жирного ✅</li>
+        <li>Обычный душ (не мочить швы) ✅</li>
+        <li>Ходьба 30–40 мин/день ✅</li>
+        <li>Дробное питание: 5–6 раз маленькими порциями ✅</li>
+      </ul>
+      <div class="warn">⚠️ Запрещено: жирное, жареное, алкоголь, газировка, тяжёлые нагрузки.</div>
+    `
+  },
+  week1: {
+    title: "Неделя 1–2",
+    body: `
+      <p><strong>Что открывается через 7–10 дней:</strong></p>
+      <ul>
+        <li>Снятие швов ✅</li>
+        <li>Сидячая работа ✅</li>
+        <li>Расширение рациона (вводить постепенно) ✅</li>
+        <li>Прогулки любой продолжительности ✅</li>
+      </ul>
+      <div class="warn">⚠️ Пока нельзя: поднимать >5 кг, баня, бассейн, жирная еда.</div>
+      <p>Контрольный осмотр у доктора Подольского — через 7–10 дней после операции.</p>
+    `
+  },
+  week2: {
+    title: "2–4 недели",
+    body: `
+      <p><strong>Что открывается через 2–4 недели:</strong></p>
+      <ul>
+        <li>Бассейн, лёгкий бег ✅</li>
+        <li>Почти любые продукты (кроме очень жирных) ✅</li>
+        <li>Физическая работа (не тяжёлая) ✅</li>
+        <li>Алкоголь в малых дозах — допустимо ✅</li>
+      </ul>
+      <div class="ok">✅ Через 2–4 недели жизнь практически без ограничений!</div>
+    `
+  },
+  month1: {
+    title: "1–3 месяца — Полная свобода",
+    body: `
+      <p><strong>Через 1–3 месяца разрешено всё:</strong></p>
+      <ul>
+        <li>Любые виды спорта, в том числе тяжёлые ✅</li>
+        <li>Баня, сауна ✅</li>
+        <li>Питание без ограничений ✅</li>
+        <li>Тяжёлые грузы ✅</li>
+      </ul>
+      <div class="ok">✅ Без желчного пузыря организм полностью адаптируется за 3–6 месяцев.</div>
+      <p><strong>Совет:</strong> даже после адаптации жирная еда может вызывать дискомфорт — следите за реакцией своего организма.</p>
+    `
+  },
+  pain: {
+    title: "💊 Болит — это нормально?",
+    body: `
+      <p>Боль и дискомфорт в правом подреберье в первые 3–7 дней — <strong>нормальная реакция</strong>.</p>
+      <p>Также могут быть: боль в плечах (от газа при лапароскопии), болезненность вокруг швов.</p>
+      <div class="ok">✅ Помогает: ходьба, парацетамол или ибупрофен по назначению врача.</div>
+      <div class="warn">🚨 Обратитесь к врачу если: нарастающая боль, желтуха, температура >38°C, рвота не прекращается.</div>
+    `
+  },
+  nausea: {
+    title: "🤢 Тошнота — что делать?",
+    body: `
+      <p>Тошнота в первые 1–2 дня после наркоза — <strong>нормально</strong>.</p>
+      <p><strong>Что помогает:</strong></p>
+      <ul>
+        <li>Дробное питание: маленькими порциями 5–6 раз в день</li>
+        <li>Не ложиться сразу после еды</li>
+        <li>Исключить жирное, жареное, острое</li>
+        <li>Прогулки после еды</li>
+      </ul>
+      <div class="ok">✅ Тошнота должна пройти к 3–4 дню.</div>
+      <div class="warn">⚠️ Если рвота не прекращается более 6 часов — позвоните доктору.</div>
+    `
+  },
+  diet: {
+    title: "🥗 Диета №5 — что можно",
+    body: `
+      <p><strong>Можно:</strong></p>
+      <ul>
+        <li>Варёное, тушёное, запечённое без корочки</li>
+        <li>Нежирное мясо (курица, индейка, кролик)</li>
+        <li>Рыба нежирная, творог, кефир</li>
+        <li>Каши, макароны, картофель варёный</li>
+        <li>Некислые фрукты, овощи варёные</li>
+      </ul>
+      <p><strong>Нельзя первые 4 недели:</strong></p>
+      <ul>
+        <li>Жирное мясо (свинина, баранина), жареное</li>
+        <li>Алкоголь, газировка, острое</li>
+        <li>Сало, масло в большом количестве</li>
+      </ul>
+      <div class="ok">✅ Через 1–3 месяца диета постепенно расширяется до обычного питания.</div>
+    `
+  },
+  sport: {
+    title: "🏃 Спорт — когда?",
+    body: `
+      <ul>
+        <li>Ходьба — <strong>с первого дня</strong> ✅</li>
+        <li>Прогулки любой длины — через 1 неделю ✅</li>
+        <li>Бассейн, лёгкий бег — через 2–4 недели ✅</li>
+        <li>Тренажёрный зал — через 4–6 недель ✅</li>
+        <li>Любые нагрузки — через 1–3 месяца ✅</li>
+      </ul>
+      <div class="ok">✅ Движение ускоряет восстановление!</div>
+      <div class="warn">⛔ Первые 2 недели нельзя: поднимать >5 кг, баня, бассейн.</div>
+    `
+  },
+  bath: {
+    title: "🛁 Баня и горячая ванна",
+    body: `
+      <div class="warn">⛔ Нельзя 2 недели после операции — пока не зажили швы.<br>Горячая вода — риск нагноения.</div>
+      <p><strong>Что можно:</strong></p>
+      <ul>
+        <li>Душ (не мочить швы до заживления) — со 2-го дня ✅</li>
+        <li>Ванна и бассейн — после снятия швов (~10 дней) ✅</li>
+        <li>Баня в умеренном режиме — через 1 месяц ✅</li>
+      </ul>
+    `
+  },
+  recurrence: {
+    title: "🔄 Камни могут появиться снова?",
+    body: `
+      <p>Желчный пузырь удалён — <strong>основная причина камней устранена навсегда</strong>.</p>
+      <p>В крайне редких случаях (менее 1%) камни могут образоваться в желчных протоках — <strong>не в пузыре</strong>.</p>
+      <div class="ok">✅ Холецистэктомия — радикальная операция. Рецидива ЖКБ практически не бывает.</div>
+      <p><strong>УЗИ контроль</strong> через 6–12 месяцев рекомендуется для оценки желчных протоков.</p>
+    `
+  },
+  alert: {
+    title: "🚨 Тревожные симптомы",
+    body: `
+      <p><strong>Обратитесь к врачу немедленно:</strong></p>
+      <ul>
+        <li>Пожелтение кожи или белков глаз</li>
+        <li>Тёмная моча, светлый стул</li>
+        <li>Температура >38°C + боль в животе</li>
+        <li>Нарастающая боль в правом подреберье</li>
+        <li>Рвота, не прекращающаяся более 6 часов</li>
+      </ul>
+      <div class="warn" style="border-color: var(--red); background: var(--red-light)">
+        <strong>Доктор Подольский М.Ю.</strong><br>
+        📱 +7 995 501-67-28<br>
+        При угрозе жизни — 103
+      </div>
+    `
+  }
+};
+
+function openModal(key) {
+  const m = MODALS[key];
+  if (!m) return;
+  document.getElementById('modal-title').textContent = m.title;
+  document.getElementById('modal-body').innerHTML = m.body;
+  document.getElementById('modal-overlay').classList.add('open');
+  if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+  }
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModalBtn();
+}
+
+function closeModalBtn() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+</script>
+</body>
+</html>
