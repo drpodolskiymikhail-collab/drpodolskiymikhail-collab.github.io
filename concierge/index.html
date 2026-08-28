@@ -571,8 +571,8 @@
 <div class="patient-card">
   <div class="patient-avatar">🙋</div>
   <div>
-    <div class="patient-name" id="patient-name">Иван Петрович</div>
-    <div class="patient-op">Флебэктомия (ЭВЛК) · Операция 24 июля</div>
+    <div class="patient-name" id="patient-name">Ваш профиль</div>
+    <div class="patient-op">Варикозная болезнь · Флебэктомия / ЭВЛК</div>
     <div class="patient-doctor">👨‍⚕️ Подольский М.Ю., хирург, к.м.н.</div>
   </div>
 </div>
@@ -894,16 +894,21 @@
 
 <script>
 // Telegram WebApp init
-if (window.Telegram && window.Telegram.WebApp) {
-  const tg = window.Telegram.WebApp;
-  tg.expand();
-  tg.ready();
-  if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-    const user = tg.initDataUnsafe.user;
-    document.getElementById('patient-name').textContent =
-      (user.first_name || '') + (user.last_name ? ' ' + user.last_name : '');
+function initTgUser() {
+  if (window.Telegram && window.Telegram.WebApp) {
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    tg.ready();
+    const user = tg.initDataUnsafe && tg.initDataUnsafe.user;
+    if (user && user.first_name) {
+      document.getElementById('patient-name').textContent =
+        user.first_name + (user.last_name ? ' ' + user.last_name : '');
+    }
   }
 }
+// пробуем сразу и через 500мс на случай если WebApp ещё не инициализировался
+initTgUser();
+setTimeout(initTgUser, 500);
 
 // Stage tabs highlight on scroll
 const tabs = document.querySelectorAll('.stage-tab');
